@@ -1,0 +1,67 @@
+{% extends "tasks/base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>Create task</h2>
+    <form method="post" action="{% url 'task_create' %}">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <label for="id_title">Title</label>
+        {{ form.title }}
+
+        <label for="id_description">Description</label>
+        {{ form.description }}
+
+        <label for="id_due_date">Due date</label>
+        {{ form.due_date }}
+
+        <div style="margin-top:8px;">
+            <label for="id_is_completed" style="font-weight:400;">
+                {{ form.is_completed }} Mark as done
+            </label>
+        </div>
+        <div class="actions">
+            <button type="submit" class="btn primary">Add task</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Tasks</h2>
+    <div class="actions" style="margin-bottom:12px;">
+        <a class="btn {% if status == 'all' %}primary{% else %}secondary{% endif %}" href="{% url 'task_list' %}?status=all">All</a>
+        <a class="btn {% if status == 'active' %}primary{% else %}secondary{% endif %}" href="{% url 'task_list' %}?status=active">Active</a>
+        <a class="btn {% if status == 'completed' %}primary{% else %}secondary{% endif %}" href="{% url 'task_list' %}?status=completed">Completed</a>
+    </div>
+    {% if tasks %}
+        {% for task in tasks %}
+            <div class="task">
+                <div>
+                    <div class="{% if task.is_completed %}completed{% endif %}">
+                        {{ task.title }}
+                        {% if task.due_date %}
+                            <span class="badge">Due: {{ task.due_date }}</span>
+                        {% endif %}
+                        {% if task.is_completed %}
+                            <span class="badge">Done</span>
+                        {% endif %}
+                    </div>
+                    {% if task.description %}<div>{{ task.description }}</div>{% endif %}
+                </div>
+                <div class="actions">
+                    <form method="post" action="{% url 'task_toggle_done' task.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn secondary">
+                            {% if task.is_completed %}Mark active{% else %}Mark done{% endif %}
+                        </button>
+                    </form>
+                    <a class="btn secondary" href="{% url 'task_update' task.pk %}">Edit</a>
+                    <a class="btn danger" href="{% url 'task_delete' task.pk %}">Delete</a>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No tasks yet.</p>
+    {% endif %}
+</div>
+{% endblock %}
