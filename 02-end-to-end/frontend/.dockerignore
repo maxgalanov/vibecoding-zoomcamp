@@ -1,0 +1,15 @@
+node_modules
+.next
+.swc
+coverage
+.git
+.gitignore
+*.log
+.env
+.env.*
+Dockerfile
+.dockerignore
+__tests__/
+jest.config.js
+jest.setup.js
+README.md

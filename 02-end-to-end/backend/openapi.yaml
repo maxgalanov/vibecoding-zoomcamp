@@ -1,0 +1,281 @@
+openapi: 3.0.0
+info:
+  title: Coding Interview Platform API
+  description: API for the real-time coding interview platform, initially reversed-engineered from frontend mock backend.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3001
+    description: Local development server
+
+paths:
+  /rooms:
+    post:
+      summary: Create a new room
+      operationId: createRoom
+      responses:
+        '201':
+          description: Room created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roomId:
+                    type: string
+                    example: "abc123"
+                  room:
+                    $ref: '#/components/schemas/Room'
+
+  /rooms/{roomId}:
+    get:
+      summary: Get room details
+      operationId: getRoom
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Room details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+        '404':
+          description: Room not found
+
+  /rooms/{roomId}/join:
+    post:
+      summary: Join a room
+      operationId: joinRoom
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+              properties:
+                username:
+                  type: string
+      responses:
+        '200':
+          description: Joined successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  room:
+                    $ref: '#/components/schemas/Room'
+                  error:
+                    type: string
+        '400':
+           description: Bad request
+
+  /rooms/{roomId}/leave:
+    post:
+      summary: Leave a room
+      operationId: leaveRoom
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+              properties:
+                username:
+                  type: string
+      responses:
+        '200':
+          description: Left successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  /rooms/{roomId}/participants:
+    get:
+      summary: Get room participants
+      operationId: getParticipants
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of participants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Participant'
+
+  /rooms/{roomId}/code:
+    patch:
+      summary: Update room code
+      operationId: updateRoomCode
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+              properties:
+                code:
+                  type: string
+      responses:
+        '200':
+          description: Code updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+  /rooms/{roomId}/language:
+    patch:
+      summary: Update room language
+      operationId: updateRoomLanguage
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - language
+              properties:
+                language:
+                  type: string
+                  enum: [javascript, python, cpp]
+      responses:
+        '200':
+          description: Language updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  code:
+                    type: string
+                    description: The default template code for the new language
+
+  /execute:
+    post:
+      summary: Execute code
+      operationId: executeCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+                - language
+              properties:
+                code:
+                  type: string
+                language:
+                  type: string
+                  enum: [javascript, python, cpp]
+      responses:
+        '200':
+          description: Execution result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  output:
+                    type: string
+                  error:
+                    type: string
+                  executeLocally:
+                    type: boolean
+                    description: If true, the client should execute the code (e.g. for JavaScript)
+
+components:
+  schemas:
+    Room:
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        language:
+          type: string
+          enum: [javascript, python, cpp]
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/Participant'
+        createdAt:
+          type: integer
+          format: int64
+
+    Participant:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        status:
+          type: string
+          enum: [active, idle]
+        isTyping:
+          type: boolean
+        isCurrentUser:
+          type: boolean
+          description: "Flag indicating if this participant is the requester. Note: typically computed by frontend or based on auth token."
+        cursorColor:
+          type: string
+        selectionColor:
+          type: string

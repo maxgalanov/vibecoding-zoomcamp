@@ -1,0 +1,48 @@
+services:
+  # Backend Service (FastAPI)
+  - type: web
+    name: coding-interview-backend
+    runtime: python
+    plan: free
+    buildCommand: cd backend && pip install uv && uv sync
+    startCommand: cd backend && uv run uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: coding-interview-db
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        fromService:
+          type: web
+          name: coding-interview-frontend
+          property: host
+
+  # Frontend Service (Next.js)
+  - type: web
+    name: coding-interview-frontend
+    runtime: node
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npm run start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: coding-interview-backend
+          property: host
+      - key: NEXT_PUBLIC_WS_URL
+        fromService:
+          type: web
+          name: coding-interview-backend
+          property: host
+
+databases:
+  # Postgres Database
+  - name: coding-interview-db
+    databaseName: coding_interview
+    user: coding_interview
+    plan: free # Can be upgraded to starter/standard later
